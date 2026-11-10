@@ -1,0 +1,17 @@
+{
+  "name": "lazy-schedule",
+  "version": "1.0.0",
+  "private": true,
+  "license": "MIT",
+  "description": "长期任务甘特图日程表",
+  "scripts": {
+    "android:add": "cap add android",
+    "sync": "cap sync",
+    "apk": "cd android && gradlew.bat assembleDebug"
+  },
+  "dependencies": {
+    "@capacitor/android": "^8.6.0",
+    "@capacitor/cli": "^8.6.0",
+    "@capacitor/core": "^8.6.0"
+  }
+}

@@ -1,0 +1,17 @@
+# 依赖
+node_modules/
+
+# WorkBuddy 项目数据（本地记忆/日志，不应开源）
+.workbuddy/
+
+# 上传任务说明（仅给上传 Agent 看，不提交）
+READMEPlus.md
+
+# 系统文件
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+*.iml
+.vscode/

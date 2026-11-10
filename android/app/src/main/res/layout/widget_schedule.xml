@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_root"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/widget_bg"
+    android:padding="14dp">
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:id="@+id/widget_title"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="冰精殿下闪耀忙碌的日程"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:textColor="#1b1a17"
+            android:singleLine="true"
+            android:ellipsize="end" />
+
+        <TextView
+            android:id="@+id/widget_date"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:textSize="11sp"
+            android:textColor="#a6a196" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/widget_empty"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="14dp"
+        android:text="暂无进行中的任务"
+        android:textSize="12sp"
+        android:textColor="#a6a196"
+        android:visibility="gone" />
+
+    <LinearLayout
+        android:id="@+id/row1"
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:gravity="center_vertical">
+        <TextView android:id="@+id/dot1" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="●" android:textSize="12sp" />
+        <TextView android:id="@+id/title1" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:layout_marginStart="6dp" android:textSize="12sp" android:textColor="#1b1a17" android:singleLine="true" android:ellipsize="end" />
+        <TextView android:id="@+id/time1" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="6dp" android:textSize="11sp" android:textColor="#6f6b62" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/row2"
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="5dp"
+        android:gravity="center_vertical">
+        <TextView android:id="@+id/dot2" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="●" android:textSize="12sp" />
+        <TextView android:id="@+id/title2" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:layout_marginStart="6dp" android:textSize="12sp" android:textColor="#1b1a17" android:singleLine="true" android:ellipsize="end" />
+        <TextView android:id="@+id/time2" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="6dp" android:textSize="11sp" android:textColor="#6f6b62" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/row3"
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="5dp"
+        android:gravity="center_vertical">
+        <TextView android:id="@+id/dot3" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="●" android:textSize="12sp" />
+        <TextView android:id="@+id/title3" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:layout_marginStart="6dp" android:textSize="12sp" android:textColor="#1b1a17" android:singleLine="true" android:ellipsize="end" />
+        <TextView android:id="@+id/time3" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="6dp" android:textSize="11sp" android:textColor="#6f6b62" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/row4"
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="5dp"
+        android:gravity="center_vertical">
+        <TextView android:id="@+id/dot4" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="●" android:textSize="12sp" />
+        <TextView android:id="@+id/title4" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:layout_marginStart="6dp" android:textSize="12sp" android:textColor="#1b1a17" android:singleLine="true" android:ellipsize="end" />
+        <TextView android:id="@+id/time4" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="6dp" android:textSize="11sp" android:textColor="#6f6b62" />
+    </LinearLayout>
+
+</LinearLayout>

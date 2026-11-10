@@ -1,0 +1,8 @@
+{
+  "appId": "com.lazy.schedule",
+  "appName": "冰精殿下闪耀忙碌的日程",
+  "webDir": "www",
+  "server": {
+    "androidScheme": "https"
+  }
+}

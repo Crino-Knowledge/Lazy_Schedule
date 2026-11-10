@@ -1,0 +1,1030 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#2f6b4f">
+<title>冰精殿下闪耀忙碌的日程</title>
+<style>
+  :root {
+    --primary: #2f6b4f;
+    --primary-deep: #24543d;
+    --bg: #f6f4ef;
+    --card: #fffefc;
+    --text: #1b1a17;
+    --text-2: #6f6b62;
+    --text-3: #a6a196;
+    --line: #e8e5dd;
+    --red: #c7403a;
+    --green: #2f6b4f;
+    --gray: #9aa096;
+    --shadow: 0 1px 2px rgba(40,36,28,.05), 0 4px 14px rgba(40,36,28,.05);
+    --label-w: 96px;
+    --segw: 44px;
+    --row-h: 62px;
+    --header-h: 132px;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", "Microsoft YaHei", sans-serif;
+    background: var(--bg); color: var(--text);
+    -webkit-font-smoothing: antialiased;
+    font-variant-numeric: tabular-nums;
+    display: flex; justify-content: center;
+  }
+  .app { width: 100%; min-height: 100dvh; }
+
+  /* ============ 桌面版（视口较宽） ============ */
+  @media (min-width: 720px) {
+    :root { --label-w: 200px; --segw: 58px; --row-h: 72px; }
+    .row-label .label-text { font-size: 15px; }
+    .bar { font-size: 14px; }
+    .d-cell { font-size: 14px; }
+  }
+
+  /* ---------- 头部 ---------- */
+  header {
+    position: fixed; top: 0; left: 0; right: 0;
+    width: 100%; z-index: 50;
+    background: var(--card); padding: calc(10px + env(safe-area-inset-top)) 16px 10px;
+    box-shadow: 0 1px 0 var(--line);
+  }
+  .top-row { display: flex; align-items: center; justify-content: space-between; }
+  .brand { font-size: 15px; font-weight: 800; letter-spacing: .3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .head-actions { display: flex; align-items: center; gap: 8px; }
+  .today-btn {
+    border: none; background: var(--bg); color: var(--primary);
+    font-size: 13px; font-weight: 700; padding: 8px 14px; border-radius: 18px; cursor: pointer;
+  }
+  .today-btn:active { opacity: .8; }
+  .add-btn {
+    border: none; background: var(--primary); color: #fff;
+    width: 34px; height: 34px; border-radius: 50%; font-size: 22px; line-height: 1;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+  }
+  .add-btn:active { opacity: .85; }
+  .seg { display: flex; background: var(--bg); border-radius: 10px; padding: 3px; margin-top: 10px; }
+  .seg-btn {
+    flex: 1; border: none; background: transparent; color: var(--text-2);
+    font-size: 13px; font-weight: 600; padding: 7px 0; border-radius: 8px; cursor: pointer; transition: all .15s;
+  }
+  .seg-btn.active { background: #fff; color: var(--primary); box-shadow: var(--shadow); }
+  .seg-btn .cnt { color: var(--text-3); font-weight: 500; margin-left: 3px; }
+
+  .indicator {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-top: 10px; padding: 9px 14px; border-radius: 12px;
+    background: var(--primary); color: #fff;
+  }
+  .ind-left { font-size: 17px; font-weight: 800; }
+  .ind-left .week { font-size: 12px; font-weight: 500; opacity: .9; margin-left: 8px; }
+  .ind-right { font-size: 12px; font-weight: 600; background: rgba(255,255,255,.2); padding: 3px 10px; border-radius: 10px; }
+
+  /* ---------- 图板 ---------- */
+  .board { padding-top: calc(var(--header-h) + 4px); }
+  .axis-sticky {
+    position: sticky; top: var(--header-h); z-index: 30;
+    background: var(--bg); overflow: hidden;
+  }
+  .axis-scroll, .body-scroll { overflow-x: auto; overflow-y: hidden; -webkit-overflow-scrolling: touch; }
+  .axis-scroll::-webkit-scrollbar, .body-scroll::-webkit-scrollbar { display: none; }
+  .axis-inner { display: flex; width: max-content; min-width: 100%; }
+  .axis-corner {
+    width: var(--label-w); flex-shrink: 0; display: flex; flex-direction: column;
+    justify-content: flex-end; padding: 0 12px 8px;
+  }
+  .legend-bar {
+    width: 100%; height: 7px; border-radius: 4px;
+    background: linear-gradient(90deg, #c7403a, #d1762f, #c49a2e, #4e8a5f, #7f9b8a, #9aa096);
+  }
+  .legend-txt { font-size: 10px; color: var(--text-3); margin-top: 4px; display: flex; justify-content: space-between; }
+  .axis-cells { flex-shrink: 0; }
+  .axis-months { display: flex; height: 20px; align-items: center; border-bottom: 1px solid var(--line); }
+  .m-cell {
+    font-size: 13px; font-weight: 700; color: var(--text-2);
+    padding-left: 6px; border-left: 1px solid var(--line);
+    white-space: nowrap; overflow: hidden; line-height: 20px;
+  }
+  .axis-days { display: flex; height: 26px; }
+  .d-cell {
+    width: calc(var(--segw)*3); flex-shrink: 0; text-align: center;
+    font-size: 13px; color: var(--text-2); line-height: 26px; cursor: pointer;
+    border-left: 1px solid #f0f1f6;
+  }
+  .d-cell:first-child { border-left: none; }
+  .d-cell.wk { color: var(--text-3); background: rgba(0,0,0,.025); }
+  .d-cell.today { color: var(--primary); font-weight: 800; }
+  .axis-hours { display: flex; height: 15px; }
+  .h-cell { width: var(--segw); flex-shrink: 0; text-align: center; font-size: 9px; color: var(--text-3); line-height: 15px; }
+
+  /* ---------- 任务区 ---------- */
+  .body-inner { position: relative; width: max-content; min-width: 100%; }
+  .row { display: flex; height: var(--row-h); border-bottom: 1px solid var(--line); }
+  .row-label {
+    position: sticky; left: 0; z-index: 20;
+    width: var(--label-w); flex-shrink: 0; background: var(--card);
+    display: flex; align-items: center; gap: 8px; padding: 0 10px;
+    border-right: 1px solid var(--line); cursor: pointer;
+  }
+  .row-label .check {
+    width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--text-3);
+    flex-shrink: 0; cursor: pointer; display: flex; align-items: center; justify-content: center;
+    transition: all .15s; background: transparent;
+  }
+  .row.done .check { background: var(--green); border-color: var(--green); }
+  .row-label .check svg { opacity: 0; }
+  .row.done .check svg { opacity: 1; }
+  .label-text { font-size: 14px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .row.done .label-text { color: var(--text-3); text-decoration: line-through; }
+  .row-track {
+    position: relative; flex-shrink: 0;
+    background-image:
+      repeating-linear-gradient(90deg, #fffefc 0 var(--segw), #f0f2e9 var(--segw) calc(var(--segw)*2), #fffefc calc(var(--segw)*2) calc(var(--segw)*3)),
+      repeating-linear-gradient(90deg, transparent 0 calc(var(--segw) - 1px), var(--line) calc(var(--segw) - 1px) var(--segw));
+  }
+  .bar {
+    position: absolute; top: 9px; height: calc(var(--row-h) - 18px); border-radius: 8px;
+    color: #fff; font-size: 13px; font-weight: 600;
+    display: flex; align-items: center; padding: 0 10px;
+    cursor: pointer; white-space: nowrap; overflow: hidden;
+    box-shadow: 0 1px 3px rgba(40,36,28,.16); transition: filter .12s, background .3s;
+  }
+  .bar:active { filter: brightness(.9); }
+  .bar.done { text-decoration: line-through; opacity: .55; }
+  .bar.expired { border: 2px solid rgba(0,0,0,.16); }
+
+  /* ---------- 红线游标 ---------- */
+  .redline {
+    position: fixed; top: var(--header-h); bottom: 0; width: 2px;
+    background: var(--red); z-index: 40; pointer-events: none;
+  }
+  .redline .pin {
+    position: absolute; top: -2px; left: 50%; transform: translateX(-50%);
+    background: var(--red); color: #fff; font-size: 11px; font-weight: 700;
+    padding: 3px 9px; border-radius: 12px; white-space: nowrap;
+    box-shadow: 0 2px 8px rgba(199,64,58,.32);
+  }
+
+  .empty { text-align: center; color: var(--text-3); padding: 60px 20px; font-size: 14px; line-height: 1.8; }
+  .empty .big { margin-bottom: 12px; color: var(--text-3); opacity: .55; }
+
+  /* ---------- 弹层 ---------- */
+  .mask { position: fixed; inset: 0; background: rgba(20,24,40,.45); opacity: 0; pointer-events: none; transition: opacity .25s; z-index: 70; }
+  .mask.show { opacity: 1; pointer-events: auto; }
+  .sheet {
+    position: fixed; left: 50%; transform: translateX(-50%) translateY(100%);
+    bottom: 0; z-index: 80; width: 100%; max-width: 560px;
+    background: var(--card); border-radius: 22px 22px 0 0;
+    padding: 10px 20px calc(24px + env(safe-area-inset-bottom));
+    transition: transform .28s cubic-bezier(.32,.72,.35,1);
+    box-shadow: 0 -10px 40px rgba(28,35,51,.14);
+  }
+  .sheet.show { transform: translateX(-50%) translateY(0); }
+  .sheet-handle { width: 40px; height: 4px; background: var(--line); border-radius: 2px; margin: 4px auto 14px; }
+  .sheet h3 { font-size: 18px; margin-bottom: 16px; }
+  .field { margin-bottom: 13px; }
+  .field label { display: block; font-size: 12px; color: var(--text-2); margin-bottom: 6px; font-weight: 600; }
+  .field input, .field textarea {
+    width: 100%; border: 1.5px solid var(--line); border-radius: 12px;
+    padding: 10px 12px; font-size: 15px; font-family: inherit; color: var(--text);
+    background: #fafbfd; outline: none; transition: border .15s;
+  }
+  .field input:focus, .field textarea:focus { border-color: var(--primary); background: #fff; }
+  .field textarea { resize: none; height: 52px; }
+  .dt-row { display: flex; gap: 10px; }
+  .dt-row .f-date { flex: 1.3; }
+  .dt-row .f-time { flex: 1; }
+  .sheet-actions { display: flex; gap: 12px; margin-top: 18px; }
+  .sheet-actions button { flex: 1; padding: 13px; border-radius: 13px; font-size: 15px; font-weight: 600; border: none; cursor: pointer; }
+  .btn-cancel { background: var(--bg); color: var(--text-2); }
+  .btn-save { background: var(--primary); color: #fff; }
+  .btn-save:active { opacity: .9; }
+
+  /* ---------- 时间表盘 ---------- */
+  .field input[readonly] { cursor: pointer; }
+  .time-sheet { max-width: 400px; z-index: 95; }
+  #timeMask { z-index: 90; }
+  .time-sheet-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+  .time-sheet-head h3 { margin: 0; }
+  .time-clear { border: none; background: none; color: var(--red); font-size: 13px; font-weight: 600; cursor: pointer; padding: 4px 6px; }
+  .clock-wrap { display: flex; justify-content: center; padding: 6px 0 2px; }
+  #clockSvg { width: min(72vw, 270px); height: auto; touch-action: none; }
+  .clock-ring { fill: none; stroke: var(--line); stroke-width: 1; }
+  .clock-num { cursor: pointer; user-select: none; }
+  .clock-num text { fill: var(--text-2); font-weight: 600; }
+  .clock-num circle { fill: transparent; }
+  .clock-num.active text { fill: #fff; }
+  .clock-num.active circle { fill: var(--primary); }
+  .clock-center-disc { fill: var(--card); stroke: var(--line); stroke-width: 1; }
+  .clock-center-time { font-size: 30px; font-weight: 800; fill: var(--text); }
+  .clock-hand-hour { stroke: var(--primary); stroke-width: 2.5; stroke-linecap: round; }
+  .clock-hand-minute { stroke: var(--red); stroke-width: 2.5; stroke-linecap: round; }
+
+  /* ---------- 导出 / 导入 / 删除 ---------- */
+  .icon-btn {
+    border: none; background: var(--bg); color: var(--text-2);
+    width: 34px; height: 34px; border-radius: 50%; font-size: 20px; line-height: 1;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+  }
+  .icon-btn:active { opacity: .8; }
+  .menu-sheet { max-width: 400px; }
+  .dialog-mask {
+    position: fixed; inset: 0; z-index: 100;
+    background: rgba(20,24,40,.45);
+    display: flex; align-items: center; justify-content: center;
+    padding: 24px; opacity: 0; pointer-events: none; transition: opacity .2s;
+  }
+  .dialog-mask.show { opacity: 1; pointer-events: auto; }
+  .dialog {
+    width: 100%; max-width: 400px; max-height: 82vh;
+    background: var(--card); border-radius: 18px; padding: 20px;
+    box-shadow: 0 24px 64px rgba(28,35,51,.32);
+    transform: scale(.94) translateY(8px); transition: transform .2s ease;
+    display: flex; flex-direction: column; overflow: hidden;
+  }
+  .dialog-mask.show .dialog { transform: scale(1) translateY(0); }
+  .dialog-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+  .dialog-head h3 { font-size: 18px; margin: 0; }
+  .dialog-close {
+    border: none; background: var(--bg); color: var(--text-2);
+    width: 30px; height: 30px; border-radius: 50%; font-size: 14px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .dialog-actions { display: flex; gap: 10px; margin-top: 16px; }
+  .dialog-actions button { flex: 1; padding: 12px; border-radius: 12px; font-size: 14px; font-weight: 600; border: none; cursor: pointer; }
+  .dialog-tip { font-size: 12px; color: var(--text-3); margin-top: 10px; line-height: 1.6; }
+  .menu-item {
+    display: flex; align-items: center; gap: 12px; width: 100%;
+    border: none; background: #fafbfd; border-radius: 12px;
+    padding: 14px 16px; margin-bottom: 10px; cursor: pointer; text-align: left;
+    font-size: 15px; font-weight: 600; color: var(--text);
+  }
+  .menu-item:active { background: #f0f2f7; }
+  .mi-ico {
+    width: 34px; height: 34px; border-radius: 10px; background: #eef2ec;
+    color: var(--primary); display: flex; align-items: center; justify-content: center;
+    font-size: 16px; font-weight: 700; flex-shrink: 0;
+  }
+  .mi-sub { margin-left: auto; font-size: 11px; color: var(--text-3); font-weight: 500; }
+  .export-text { min-height: 130px; max-height: 40vh; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px; }
+  .import-text { min-height: 120px; }
+  .import-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+  .btn-upload { padding: 9px 14px; border-radius: 10px; }
+  .import-mode { display: flex; gap: 14px; font-size: 13px; color: var(--text-2); }
+  .import-mode label { display: flex; align-items: center; gap: 4px; cursor: pointer; }
+  .btn-danger { background: var(--red); color: #fff; }
+  .btn-danger:active { opacity: .9; }
+  .del-tip { font-size: 14px; color: var(--text-2); line-height: 1.7; margin: 4px 0 6px; }
+  .del-tip b { color: var(--text); }
+  .del-cancel {
+    display: block; width: 100%; margin-top: 8px; padding: 12px;
+    border: none; background: var(--bg); color: var(--text-2);
+    border-radius: 12px; font-size: 14px; font-weight: 600; cursor: pointer;
+  }
+  .row-del {
+    width: 22px; height: 22px; border-radius: 50%;
+    border: 2px solid var(--red); background: transparent; color: var(--red);
+    font-size: 11px; line-height: 1; cursor: pointer;
+    flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+  }
+</style>
+</head>
+<body>
+  <div class="app">
+    <header id="header">
+      <div class="top-row">
+        <div class="brand">冰精殿下闪耀忙碌的日程</div>
+        <div class="head-actions">
+          <button class="icon-btn" id="btnMenu" title="更多">⋯</button>
+          <button class="today-btn" id="btnToday">回到今天</button>
+          <button class="add-btn" id="addBtn">+</button>
+        </div>
+      </div>
+      <div class="seg">
+        <button class="seg-btn active" data-view="active">进行中 <span class="cnt" id="cntActive"></span></button>
+        <button class="seg-btn" data-view="done">已完成 <span class="cnt" id="cntDone"></span></button>
+      </div>
+      <div class="indicator">
+        <div class="ind-left" id="indDate">—</div>
+        <div class="ind-right" id="indRel">—</div>
+      </div>
+    </header>
+
+    <div class="board">
+      <div class="axis-sticky">
+        <div class="axis-scroll" id="axisScroll">
+          <div class="axis-inner">
+            <div class="axis-corner">
+              <div class="legend-bar"></div>
+              <div class="legend-txt"><span>紧急</span><span>宽松</span></div>
+            </div>
+            <div class="axis-cells" id="axisCells"></div>
+          </div>
+        </div>
+      </div>
+      <div class="body-scroll" id="bodyScroll">
+        <div class="body-inner" id="bodyInner"></div>
+      </div>
+      <div class="empty" id="emptyBox" style="display:none">
+        <div class="big"><svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2.5"/><line x1="3" y1="9.5" x2="21" y2="9.5"/><line x1="8" y1="3" x2="8" y2="7"/><line x1="16" y1="3" x2="16" y2="7"/></svg></div>
+        还没有长期任务<br>点右上角 + 添加一个，它会横跨多天展示
+      </div>
+    </div>
+
+    <div class="redline" id="redline"><span class="pin" id="pin">今天</span></div>
+  </div>
+
+  <div class="mask" id="mask"></div>
+  <div class="sheet" id="sheet">
+    <div class="sheet-handle"></div>
+    <h3 id="sheetTitle">添加任务</h3>
+    <div class="field">
+      <label>任务名称</label>
+      <input type="text" id="inpTitle" placeholder="例如：产品研发" maxlength="40">
+    </div>
+    <div class="dt-row">
+      <div class="field f-date">
+        <label>开始日期</label>
+        <input type="date" id="inpStartD">
+      </div>
+      <div class="field f-time">
+        <label>开始时间</label>
+        <input type="text" id="inpStartT" placeholder="全天" readonly>
+      </div>
+    </div>
+    <div class="dt-row">
+      <div class="field f-date">
+        <label>截止日期</label>
+        <input type="date" id="inpEndD">
+      </div>
+      <div class="field f-time">
+        <label>截止时间</label>
+        <input type="text" id="inpEndT" placeholder="全天" readonly>
+      </div>
+    </div>
+    <div class="field">
+      <label>备注（可选）</label>
+      <textarea id="inpNote" placeholder="补充说明…" maxlength="120"></textarea>
+    </div>
+    <div class="sheet-actions">
+      <button class="btn-cancel" id="btnCancel">取消</button>
+      <button class="btn-save" id="btnSave">保存</button>
+    </div>
+  </div>
+
+  <div class="mask" id="timeMask"></div>
+  <div class="sheet time-sheet" id="timeSheet">
+    <div class="sheet-handle"></div>
+    <div class="time-sheet-head">
+      <h3 id="timeTitle">选择时间</h3>
+      <button class="time-clear" id="timeClear">清除</button>
+    </div>
+    <div class="clock-wrap">
+      <svg id="clockSvg" viewBox="0 0 280 280"></svg>
+    </div>
+    <div class="sheet-actions">
+      <button class="btn-cancel" id="timeCancel">取消</button>
+      <button class="btn-save" id="timeOk">确定</button>
+    </div>
+  </div>
+
+  <!-- 更多菜单 -->
+  <div class="dialog-mask" id="menuMask">
+    <div class="dialog">
+      <div class="dialog-head">
+        <h3>更多</h3>
+        <button class="dialog-close" id="menuClose">✕</button>
+      </div>
+      <button class="menu-item" id="btnExport"><span class="mi-ico">↓</span>导出数据<span class="mi-sub">复制 / 分享 / 文件</span></button>
+      <button class="menu-item" id="btnImport"><span class="mi-ico">↑</span>导入数据<span class="mi-sub">粘贴 / 上传</span></button>
+    </div>
+  </div>
+
+  <!-- 导出 -->
+  <div class="dialog-mask" id="exportMask">
+    <div class="dialog">
+      <div class="dialog-head">
+        <h3>导出数据</h3>
+        <button class="dialog-close" id="exportClose">✕</button>
+      </div>
+      <textarea id="exportText" class="export-text" readonly></textarea>
+      <div class="dialog-tip">手机端建议用「分享」或「复制」，把内容发到微信、备忘录或网盘保存</div>
+      <div class="dialog-actions">
+        <button class="btn-cancel" id="exportCopy">复制</button>
+        <button class="btn-cancel" id="exportShare">分享</button>
+        <button class="btn-save" id="exportDownload">下载文件</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 导入 -->
+  <div class="dialog-mask" id="importMask">
+    <div class="dialog">
+      <div class="dialog-head">
+        <h3>导入数据</h3>
+        <button class="dialog-close" id="importClose">✕</button>
+      </div>
+      <div class="field">
+        <label>粘贴 JSON 文本，或上传文件（.json / .txt / .md）</label>
+        <textarea id="importText" class="import-text" placeholder='粘贴 {"tasks":[...]} 或直接 [...]'></textarea>
+      </div>
+      <div class="import-row">
+        <button class="btn-cancel btn-upload" id="importFile">上传文件</button>
+        <input type="file" id="importFileInput" accept=".json,.txt,.md,application/json,text/plain,text/markdown" hidden>
+        <span class="import-mode">
+          <label><input type="radio" name="importMode" value="merge" checked>合并</label>
+          <label><input type="radio" name="importMode" value="replace">替换</label>
+        </span>
+      </div>
+      <div class="dialog-actions">
+        <button class="btn-cancel" id="importCancel">取消</button>
+        <button class="btn-save" id="importOk">导入</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 删除确认 -->
+  <div class="dialog-mask" id="delMask">
+    <div class="dialog">
+      <div class="dialog-head">
+        <h3>删除任务</h3>
+        <button class="dialog-close" id="delClose">✕</button>
+      </div>
+      <p class="del-tip" id="delTip"></p>
+      <div class="dialog-actions">
+        <button class="btn-cancel" id="delExport">先导出备份</button>
+        <button class="btn-danger" id="delOk">确认删除</button>
+      </div>
+      <button class="del-cancel" id="delCancel">取消</button>
+    </div>
+  </div>
+
+<script>
+(function () {
+  const $ = (s) => document.querySelector(s);
+  const pad = (n) => String(n).padStart(2, '0');
+  const fmtDate = (d) => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+  const H8 = 8 * 3600 * 1000;
+  const DAY_MS = 86400000;
+  const WEEK = ['日','一','二','三','四','五','六'];
+
+  const today = new Date();
+  const todayStr = fmtDate(today);
+  const startOfDay = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  const addDays = (d, n) => new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
+  const parseDate = (s) => { const [y,m,d] = s.split('-').map(Number); return new Date(y, m-1, d); };
+  const diffDays = (a, b) => Math.round((startOfDay(a) - startOfDay(b)) / DAY_MS);
+  const toTime = (date, time) => {
+    const [y,m,d] = date.split('-').map(Number);
+    let h = 0, mi = 0;
+    if (time) { [h, mi] = time.split(':').map(Number); }
+    return new Date(y, m-1, d, h, mi).getTime();
+  };
+  const taskStart = (t) => toTime(t.start, t.startTime || '00:00');
+  const taskEnd = (t) => toTime(t.end, t.endTime || '23:59');
+  const endLabel = (t) => {
+    const [,m,d] = t.end.split('-').map(Number);
+    return (m) + '/' + d + ' ' + (t.endTime ? t.endTime : '全天');
+  };
+
+  // ---------- 尺寸（与 CSS 变量同步） ----------
+  let SEG_W = 44, LABEL_W = 96;
+  function readVars() {
+    const cs = getComputedStyle(document.documentElement);
+    SEG_W = parseFloat(cs.getPropertyValue('--segw')) || 44;
+    LABEL_W = parseFloat(cs.getPropertyValue('--label-w')) || 96;
+  }
+
+  // ---------- 数据 ----------
+  let store = load();
+  if (store === null) { store = []; seed(); }
+  let view = 'active';
+  let editingId = null;
+  let axisStart, axisEnd, totalDays, trackW, startT0;
+  let selectedDate = todayStr;
+
+  function load() {
+    try { return JSON.parse(localStorage.getItem('schedule.v5')) || null; }
+    catch (e) { return null; }
+  }
+  function save() {
+    localStorage.setItem('schedule.v5', JSON.stringify(store));
+    // 同步到 Android 桌面组件（仅在 App 内运行时生效）
+    try {
+      if (window.ScheduleBridge && window.ScheduleBridge.save) {
+        window.ScheduleBridge.save(JSON.stringify(store));
+      }
+    } catch (e) {}
+  }
+  function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+
+  function seed() {
+    const d = (off) => fmtDate(addDays(today, off));
+    const t = (off, h, mi) => ({ date: d(off), time: pad(h)+':'+pad(mi) });
+    store = [
+      { id: uid(), title: '产品研发', start: t(-4,9,0).date, startTime: t(-4,9,0).time, end: t(1,18,0).date, endTime: t(1,18,0).time, note: '明天截止，冲刺', done: false },
+      { id: uid(), title: '市场推广方案', start: t(2,0,0).date, startTime: '', end: t(4,17,0).date, endTime: t(4,17,0).time, note: '', done: false },
+      { id: uid(), title: '客户跟进', start: t(0,10,0).date, startTime: t(0,10,0).time, end: t(9,16,0).date, endTime: t(9,16,0).time, note: '', done: false },
+      { id: uid(), title: '写周报', start: d(0), startTime: '', end: d(0), endTime: '16:00', note: '今天下班前', done: false },
+      { id: uid(), title: '年度总结', start: t(-10,0,0).date, startTime: '', end: t(-2,0,0).date, endTime: '', note: '已交', done: true },
+    ];
+    save();
+  }
+
+  // ---------- 紧急程度渐变色 ----------
+  function urgencyColor(daysLeft) {
+    if (daysLeft < 0) return '#b8322f';      // 已过期 深红
+    if (daysLeft > 30) return '#9aa096';     // 遥远 灰
+    // 0~30 天土色系渐变：红 -> 橙 -> 土黄 -> 绿 -> 灰绿（低饱和、克制）
+    const stops = [
+      [0,  [199, 64, 58]],
+      [1,  [205, 105, 58]],
+      [3,  [209, 138, 47]],
+      [7,  [196, 154, 46]],
+      [14, [78, 138, 95]],
+      [30, [127, 155, 138]],
+    ];
+    let c = stops[stops.length - 1][1];
+    for (let i = 0; i < stops.length - 1; i++) {
+      const [d1, c1] = stops[i], [d2, c2] = stops[i + 1];
+      if (daysLeft >= d1 && daysLeft <= d2) {
+        const t = (daysLeft - d1) / (d2 - d1);
+        c = c1.map((v, k) => Math.round(v + (c2[k] - v) * t));
+        break;
+      }
+    }
+    return `rgb(${c[0]},${c[1]},${c[2]})`;
+  }
+
+  // ---------- 范围 ----------
+  function computeRange() {
+    const t0 = startOfDay(today).getTime();
+    let minT = t0, maxT = t0;
+    store.forEach(t => {
+      const s = taskStart(t), e = taskEnd(t);
+      if (s < minT) minT = s;
+      if (e > maxT) maxT = e;
+    });
+    axisStart = addDays(startOfDay(new Date(minT)), -3);
+    axisEnd = addDays(startOfDay(new Date(maxT)), 14);
+    const minEnd = addDays(today, 30);
+    if (axisEnd < minEnd) axisEnd = minEnd;
+    totalDays = diffDays(axisEnd, axisStart) + 1;
+    let contentW = totalDays * 3 * SEG_W;
+    const viewportW = window.innerWidth - LABEL_W;
+    if (contentW < viewportW) {
+      totalDays = Math.ceil(viewportW / (3 * SEG_W));
+      axisEnd = addDays(axisStart, totalDays - 1);
+      contentW = totalDays * 3 * SEG_W;
+    }
+    trackW = contentW;
+    startT0 = startOfDay(axisStart).getTime();
+  }
+  const tToX = (t) => (t - startT0) / H8 * SEG_W;
+
+  // ---------- 日期轴 ----------
+  function renderAxis() {
+    let mHtml = '', dHtml = '', hHtml = '';
+    let d = axisStart;
+    while (d <= axisEnd) {
+      const dim = new Date(d.getFullYear(), d.getMonth()+1, 0).getDate();
+      const remaining = diffDays(axisEnd, d) + 1;
+      const span = Math.min(dim - d.getDate() + 1, remaining);
+      mHtml += `<span class="m-cell" style="width:${span*3*SEG_W}px">${d.getMonth()+1}月</span>`;
+      d = addDays(d, span);
+    }
+    for (let dd = axisStart; dd <= axisEnd; dd = addDays(dd, 1)) {
+      const ds = fmtDate(dd);
+      const isToday = ds === todayStr;
+      const wk = dd.getDay() === 0 || dd.getDay() === 6;
+      dHtml += `<span class="d-cell${isToday?' today':''}${wk?' wk':''}" data-date="${ds}">${dd.getDate()}</span>`;
+      hHtml += `<span class="h-cell">0</span><span class="h-cell">8</span><span class="h-cell">16</span>`;
+    }
+    $('#axisCells').innerHTML = `<div class="axis-months">${mHtml}</div><div class="axis-days">${dHtml}</div><div class="axis-hours">${hHtml}</div>`;
+    $('#axisCells').querySelectorAll('.d-cell').forEach(c => {
+      c.addEventListener('click', () => scrollToDate(c.dataset.date, '00:00'));
+    });
+  }
+
+  // ---------- 任务区 ----------
+  // 排序：未完成按开始时间正序；已完成按结束时间倒序（先结束在下），
+  // 结束相同按开始时间倒序（先开始在下），再相同保持稳定
+  function sortTasks(tasks) {
+    const active = tasks.filter(t => !t.done)
+      .sort((a, b) => taskStart(a) - taskStart(b) || taskEnd(a) - taskEnd(b));
+    const done = tasks.filter(t => t.done)
+      .sort((a, b) => taskEnd(b) - taskEnd(a) || taskStart(b) - taskStart(a) || (a.id < b.id ? -1 : 1));
+    return active.concat(done);
+  }
+
+  function renderRows() {
+    const inner = $('#bodyInner');
+    const visible = sortTasks(store.filter(t => view === 'active' ? !t.done : t.done));
+
+    let html = '';
+    visible.forEach(t => {
+      const isDone = t.done;
+      const x = tToX(taskStart(t));
+      const w = Math.max(tToX(taskEnd(t)) - x, SEG_W * 0.5);
+      const showText = w >= SEG_W * 2;
+      html += `
+        <div class="row${isDone?' done':''}" data-id="${t.id}">
+          <div class="row-label">
+            ${isDone ? '<button class="row-del" title="删除">✕</button>' : `<button class="check">${CHECK_SVG}</button>`}
+            <span class="label-text"></span>
+          </div>
+          <div class="row-track" style="width:${trackW}px">
+            <div class="bar${isDone?' done':''}" data-id="${t.id}" data-done="${isDone?1:0}" data-end="${taskEnd(t)}"
+                 style="left:${x}px;width:${w}px">${showText ? esc(t.title) + ' · 截止' + endLabel(t) : ''}</div>
+          </div>
+        </div>`;
+    });
+    inner.innerHTML = html;
+    inner.querySelectorAll('.row').forEach(row => {
+      const t = store.find(x => x.id === row.dataset.id);
+      row.querySelector('.label-text').textContent = t.title;
+      const check = row.querySelector('.check');
+      if (check) check.addEventListener('click', (ev) => { ev.stopPropagation(); t.done = !t.done; save(); renderAll(); });
+      const del = row.querySelector('.row-del');
+      if (del) del.addEventListener('click', (ev) => { ev.stopPropagation(); confirmDelete(t.id); });
+      row.querySelector('.row-label').addEventListener('click', () => openSheet(t.id));
+      row.querySelector('.bar').addEventListener('click', () => openSheet(t.id));
+    });
+    $('#emptyBox').style.display = visible.length ? 'none' : 'block';
+  }
+
+  function esc(s) { return s.replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+  const CHECK_SVG = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+  function updateHeader() {
+    const done = store.filter(t => t.done).length;
+    $('#cntActive').textContent = store.length - done;
+    $('#cntDone').textContent = done;
+    document.querySelectorAll('.seg-btn').forEach(b => b.classList.toggle('active', b.dataset.view === view));
+  }
+
+  // ---------- 颜色随选中日期更新 ----------
+  function updateBarColors() {
+    const selStart = startOfDay(parseDate(selectedDate)).getTime();
+    document.querySelectorAll('.bar').forEach(bar => {
+      const done = bar.dataset.done === '1';
+      if (done) {
+        bar.style.background = '#9aa096';
+        bar.classList.add('done'); bar.classList.remove('expired');
+        return;
+      }
+      const daysLeft = (Number(bar.dataset.end) - selStart) / DAY_MS;
+      bar.style.background = urgencyColor(daysLeft);
+      bar.classList.remove('done');
+      bar.classList.toggle('expired', daysLeft < 0);
+    });
+  }
+
+  // ---------- 红线游标 ----------
+  const redline = $('#redline');
+  const app = $('.app');
+  const bodyScroll = $('#bodyScroll');
+  const axisScroll = $('#axisScroll');
+  let RED_X = 0, appLeft = 0;
+
+  function layout() {
+    const r = app.getBoundingClientRect();
+    appLeft = r.left;
+    const ratio = r.width >= 720 ? 0.30 : 0.35;
+    RED_X = appLeft + LABEL_W + (r.width - LABEL_W) * ratio;
+    redline.style.left = RED_X + 'px';
+  }
+
+  function redTime() {
+    const xInTrack = bodyScroll.scrollLeft + (RED_X - appLeft - LABEL_W);
+    return startT0 + xInTrack / SEG_W * H8;
+  }
+
+  function updateIndicator() {
+    const t = new Date(redTime());
+    selectedDate = fmtDate(t);
+    const rel = relLabel(selectedDate);
+    $('#indDate').innerHTML = `${t.getMonth()+1}月${t.getDate()}日<span class="week">周${WEEK[t.getDay()]}</span>`;
+    $('#indRel').textContent = rel ? rel.text : '';
+    const pin = $('#pin');
+    pin.textContent = selectedDate === todayStr ? '今天' : (t.getMonth()+1 + '/' + t.getDate());
+    pin.style.background = selectedDate === todayStr ? 'var(--red)' : 'var(--primary)';
+    updateBarColors();
+  }
+
+  function relLabel(dateStr) {
+    const diff = diffDays(parseDate(dateStr), today);
+    if (diff === 0) return { text: '今天' };
+    if (diff === 1) return { text: '明天' };
+    if (diff === -1) return { text: '昨天' };
+    return null;
+  }
+
+  // ---------- 滚动同步 + 跳转 ----------
+  let syncing = false;
+  function sync(a, b) {
+    if (syncing) return; syncing = true;
+    if (Math.abs(b.scrollLeft - a.scrollLeft) > 1) b.scrollLeft = a.scrollLeft;
+    syncing = false;
+  }
+  axisScroll.addEventListener('scroll', () => { sync(axisScroll, bodyScroll); updateIndicator(); });
+  bodyScroll.addEventListener('scroll', () => { sync(bodyScroll, axisScroll); updateIndicator(); });
+
+  function scrollToDate(dateStr, time) {
+    const t = toTime(dateStr, time || '00:00');
+    const target = tToX(t) - (RED_X - appLeft - LABEL_W);
+    bodyScroll.scrollLeft = target; axisScroll.scrollLeft = target;
+    updateIndicator();
+  }
+
+  // ---------- 弹层 ----------
+  function openSheet(id) {
+    editingId = id || null;
+    if (id) {
+      const t = store.find(x => x.id === id);
+      if (!t) return;
+      $('#sheetTitle').textContent = '编辑任务';
+      $('#inpTitle').value = t.title;
+      $('#inpStartD').value = t.start; $('#inpStartT').value = t.startTime || '';
+      $('#inpEndD').value = t.end; $('#inpEndT').value = t.endTime || '';
+      $('#inpNote').value = t.note || '';
+    } else {
+      $('#sheetTitle').textContent = '添加任务';
+      $('#inpTitle').value = '';
+      $('#inpStartD').value = todayStr; $('#inpStartT').value = '';
+      $('#inpEndD').value = todayStr; $('#inpEndT').value = '';
+      $('#inpNote').value = '';
+    }
+    $('#sheet').classList.add('show'); $('#mask').classList.add('show');
+    setTimeout(() => $('#inpTitle').focus(), 280);
+  }
+  function closeSheet() { $('#sheet').classList.remove('show'); $('#mask').classList.remove('show'); }
+  function submit() {
+    const title = $('#inpTitle').value.trim();
+    const start = $('#inpStartD').value, startTime = $('#inpStartT').value;
+    const end = $('#inpEndD').value, endTime = $('#inpEndT').value;
+    const note = $('#inpNote').value.trim();
+    if (!title) { $('#inpTitle').focus(); return; }
+    if (!start || !end) return;
+    if (taskEnd({ end, endTime }) < taskStart({ start, startTime })) { alert('截止时间不能早于开始时间'); return; }
+
+    if (editingId) {
+      const t = store.find(x => x.id === editingId);
+      if (t) Object.assign(t, { title, start, startTime, end, endTime, note });
+    } else {
+      store.push({ id: uid(), title, start, startTime, end, endTime, note, done: false });
+    }
+    save(); closeSheet(); renderAll();
+  }
+
+  // ---------- 事件 ----------
+  $('#addBtn').addEventListener('click', () => openSheet(null));
+  $('#btnToday').addEventListener('click', () => scrollToDate(todayStr, '08:00'));
+  $('#mask').addEventListener('click', closeSheet);
+  $('#btnCancel').addEventListener('click', closeSheet);
+  $('#btnSave').addEventListener('click', submit);
+  $('#inpTitle').addEventListener('keydown', (e) => { if (e.key === 'Enter') submit(); });
+  document.querySelectorAll('.seg-btn').forEach(b => b.addEventListener('click', () => { view = b.dataset.view; renderAll(); }));
+
+  // ---------- 时间表盘 ----------
+  let pendingTimeField = null;
+  let clockHour = 9, clockMinute = 0, clockDragging = false, clockLock = null;
+  const clockSvgEl = $('#clockSvg');
+
+  function openTimePicker(field) {
+    pendingTimeField = field;
+    const inp = field === 'start' ? $('#inpStartT') : $('#inpEndT');
+    $('#timeTitle').textContent = field === 'start' ? '选择开始时间' : '选择截止时间';
+    const val = inp.value;
+    if (/^\d{2}:\d{2}$/.test(val)) { clockHour = +val.slice(0,2); clockMinute = +val.slice(3); }
+    else { clockHour = 9; clockMinute = 0; }
+    $('#timeClear').style.display = val ? 'inline' : 'none';
+    renderClock();
+    $('#timeSheet').classList.add('show');
+    $('#timeMask').classList.add('show');
+  }
+  function closeTimePicker() {
+    $('#timeSheet').classList.remove('show');
+    $('#timeMask').classList.remove('show');
+  }
+  function renderClock() {
+    const cx = 140, cy = 140, Rh = 116, Rm = 82;
+    let p = [];
+    p.push(`<circle class="clock-ring" cx="${cx}" cy="${cy}" r="${Rh}"/>`);
+    p.push(`<circle class="clock-ring" cx="${cx}" cy="${cy}" r="${Rm}"/>`);
+    for (let i = 0; i < 24; i++) {
+      const a = (i/24)*Math.PI*2 - Math.PI/2;
+      const x = cx + Rh*Math.cos(a), y = cy + Rh*Math.sin(a);
+      p.push(`<g class="clock-num${i===clockHour?' active':''}" data-hour="${i}"><circle cx="${x}" cy="${y}" r="17"/><text x="${x}" y="${y}" text-anchor="middle" dominant-baseline="central" font-size="12">${i}</text></g>`);
+    }
+    for (let i = 0; i < 12; i++) {
+      const v = i*5, a = (i/12)*Math.PI*2 - Math.PI/2;
+      const x = cx + Rm*Math.cos(a), y = cy + Rm*Math.sin(a);
+      p.push(`<g class="clock-num${v===clockMinute?' active':''}" data-min="${v}"><circle cx="${x}" cy="${y}" r="13"/><text x="${x}" y="${y}" text-anchor="middle" dominant-baseline="central" font-size="10">${v}</text></g>`);
+    }
+    p.push(`<circle class="clock-center-disc" cx="${cx}" cy="${cy}" r="38"/>`);
+    p.push(`<text class="clock-center-time" x="${cx}" y="${cy}" text-anchor="middle" dominant-baseline="central">${pad(clockHour)}:${pad(clockMinute)}</text>`);
+    const ha = (clockHour/24)*Math.PI*2 - Math.PI/2;
+    p.push(`<line class="clock-hand-hour" x1="${cx+38*Math.cos(ha)}" y1="${cy+38*Math.sin(ha)}" x2="${cx+(Rh-16)*Math.cos(ha)}" y2="${cy+(Rh-16)*Math.sin(ha)}" pointer-events="none"/>`);
+    const ma = (clockMinute/60)*Math.PI*2 - Math.PI/2;
+    p.push(`<line class="clock-hand-minute" x1="${cx+38*Math.cos(ma)}" y1="${cy+38*Math.sin(ma)}" x2="${cx+(Rm-12)*Math.cos(ma)}" y2="${cy+(Rm-12)*Math.sin(ma)}" pointer-events="none"/>`);
+    clockSvgEl.innerHTML = p.join('');
+    clockSvgEl.querySelectorAll('.clock-num').forEach(g => {
+      g.addEventListener('click', (ev) => {
+        ev.stopPropagation();
+        if (g.dataset.hour !== undefined) clockHour = +g.dataset.hour;
+        else if (g.dataset.min !== undefined) clockMinute = +g.dataset.min;
+        renderClock();
+      });
+    });
+  }
+  function clockPoint(e) {
+    const r = clockSvgEl.getBoundingClientRect();
+    const sc = 280 / r.width;
+    return { dx: (e.clientX - (r.left + r.width/2)) * sc, dy: (e.clientY - (r.top + r.height/2)) * sc };
+  }
+  function clockApply(e) {
+    const { dx, dy } = clockPoint(e);
+    const dist = Math.hypot(dx, dy);
+    if (dist < 28 || !clockLock) return;
+    let deg = Math.atan2(dy, dx) * 180/Math.PI + 90;
+    deg = (deg + 360) % 360;
+    if (clockLock === 'hour') clockHour = Math.round(deg/15) % 24;
+    else clockMinute = Math.round(deg/30) * 5 % 60;
+    renderClock();
+  }
+  clockSvgEl.addEventListener('pointerdown', (e) => {
+    const { dx, dy } = clockPoint(e);
+    const dist = Math.hypot(dx, dy);
+    if (dist < 28) { clockLock = null; clockDragging = false; return; }
+    clockLock = dist > 100 ? 'hour' : 'minute';   // 按下即锁定目标圈
+    clockDragging = true;
+    clockApply(e);
+  });
+  window.addEventListener('pointermove', (e) => { if (clockDragging) clockApply(e); });
+  window.addEventListener('pointerup', () => { clockDragging = false; clockLock = null; });
+  $('#inpStartT').addEventListener('click', () => openTimePicker('start'));
+  $('#inpEndT').addEventListener('click', () => openTimePicker('end'));
+  $('#timeOk').addEventListener('click', () => {
+    const inp = pendingTimeField === 'start' ? $('#inpStartT') : $('#inpEndT');
+    inp.value = pad(clockHour) + ':' + pad(clockMinute);
+    closeTimePicker();
+  });
+  $('#timeCancel').addEventListener('click', closeTimePicker);
+  $('#timeMask').addEventListener('click', closeTimePicker);
+  $('#timeClear').addEventListener('click', () => {
+    const inp = pendingTimeField === 'start' ? $('#inpStartT') : $('#inpEndT');
+    inp.value = ''; closeTimePicker();
+  });
+
+  // ---------- 导出 / 导入 ----------
+  function exportData() {
+    return JSON.stringify({ app: 'lazy-schedule', version: 1, exportedAt: new Date().toISOString(), tasks: store }, null, 2);
+  }
+  function normalizeTask(t) {
+    if (!t || typeof t !== 'object') return null;
+    const title = String(t.title || '').trim();
+    if (!title) return null;
+    const dateRe = /^\d{4}-\d{2}-\d{2}$/, timeRe = /^\d{2}:\d{2}$/;
+    const start = dateRe.test(t.start) ? t.start : todayStr;
+    const end = dateRe.test(t.end) ? t.end : start;
+    return {
+      id: (typeof t.id === 'string' && t.id) ? t.id : uid(),
+      title, start,
+      startTime: timeRe.test(t.startTime) ? t.startTime : '',
+      end, endTime: timeRe.test(t.endTime) ? t.endTime : '',
+      note: String(t.note || '').slice(0, 120),
+      done: !!t.done,
+    };
+  }
+  function parseImport(text) {
+    let data;
+    try { data = JSON.parse(text); } catch (e) { return null; }
+    let arr;
+    if (Array.isArray(data)) arr = data;
+    else if (data && Array.isArray(data.tasks)) arr = data.tasks;
+    else return null;
+    return arr.map(normalizeTask).filter(Boolean);
+  }
+  function fallbackCopy(text) {
+    const ta = document.createElement('textarea');
+    ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); } catch (e) {}
+    document.body.removeChild(ta);
+  }
+  function copyText(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(() => alert('已复制到剪贴板'))
+        .catch(() => { fallbackCopy(text); alert('已复制到剪贴板'); });
+    } else { fallbackCopy(text); alert('已复制到剪贴板'); }
+  }
+  function downloadFile(name, text) {
+    const blob = new Blob([text], { type: 'application/json;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = name; document.body.appendChild(a); a.click();
+    document.body.removeChild(a); URL.revokeObjectURL(url);
+  }
+  function openMenu() { $('#menuMask').classList.add('show'); }
+  function closeMenu() { $('#menuMask').classList.remove('show'); }
+  function openExport() { $('#exportText').value = exportData(); $('#exportMask').classList.add('show'); }
+  function closeExport() { $('#exportMask').classList.remove('show'); }
+  function openImport() { $('#importText').value = ''; $('#importMask').classList.add('show'); }
+  function closeImport() { $('#importMask').classList.remove('show'); }
+  function doImport() {
+    const text = $('#importText').value.trim();
+    if (!text) { alert('请先粘贴数据或上传文件'); return; }
+    const tasks = parseImport(text);
+    if (!tasks || !tasks.length) { alert('未识别到有效数据，请检查格式'); return; }
+    const mode = document.querySelector('input[name="importMode"]:checked').value;
+    if (mode === 'replace') {
+      if (store.length && !confirm(`替换将清空现有 ${store.length} 个任务，确定吗？`)) return;
+      store = tasks;
+    } else {
+      const map = {};
+      store.forEach(t => map[t.id] = t);
+      tasks.forEach(t => map[t.id] = t);
+      store = Object.values(map);
+    }
+    save(); renderAll(); closeImport();
+    alert(`成功导入 ${tasks.length} 个任务`);
+  }
+
+  // ---------- 删除 ----------
+  let pendingDeleteId = null;
+  function confirmDelete(id) {
+    pendingDeleteId = id;
+    const t = store.find(x => x.id === id);
+    if (!t) return;
+    $('#delTip').innerHTML = `确定删除「<b>${esc(t.title)}</b>」？<br>删除后无法恢复，建议先导出备份。`;
+    $('#delMask').classList.add('show');
+  }
+  function closeDelete() { $('#delMask').classList.remove('show'); }
+  function doDelete() {
+    if (!pendingDeleteId) return;
+    store = store.filter(x => x.id !== pendingDeleteId);
+    pendingDeleteId = null;
+    save(); renderAll(); closeDelete();
+  }
+
+  $('#btnMenu').addEventListener('click', openMenu);
+  $('#menuMask').addEventListener('click', closeMenu);
+  $('#menuClose').addEventListener('click', closeMenu);
+  $('#btnExport').addEventListener('click', () => { closeMenu(); openExport(); });
+  $('#btnImport').addEventListener('click', () => { closeMenu(); openImport(); });
+  $('#exportMask').addEventListener('click', closeExport);
+  $('#exportClose').addEventListener('click', closeExport);
+  $('#exportCopy').addEventListener('click', () => copyText($('#exportText').value));
+  $('#exportShare').addEventListener('click', () => {
+    const text = $('#exportText').value;
+    if (navigator.share) navigator.share({ title: '日程数据', text: text }).catch(() => {});
+    else copyText(text);
+  });
+  $('#exportDownload').addEventListener('click', () => downloadFile('lazy-schedule.json', $('#exportText').value));
+  $('#importMask').addEventListener('click', closeImport);
+  $('#importClose').addEventListener('click', closeImport);
+  $('#importCancel').addEventListener('click', closeImport);
+  $('#importOk').addEventListener('click', doImport);
+  $('#importFile').addEventListener('click', () => $('#importFileInput').click());
+  $('#importFileInput').addEventListener('change', (e) => {
+    const f = e.target.files[0];
+    if (!f) return;
+    const r = new FileReader();
+    r.onload = () => { $('#importText').value = r.result; };
+    r.readAsText(f);
+    e.target.value = '';
+  });
+  $('#delMask').addEventListener('click', closeDelete);
+  $('#delCancel').addEventListener('click', closeDelete);
+  $('#delClose').addEventListener('click', closeDelete);
+  $('#delOk').addEventListener('click', doDelete);
+  $('#delExport').addEventListener('click', () => { closeDelete(); openExport(); });
+
+  // 不支持系统分享时隐藏「分享」按钮
+  if (!navigator.share) { const s = $('#exportShare'); if (s) s.style.display = 'none'; }
+
+  function setHeaderH() {
+    document.documentElement.style.setProperty('--header-h', $('#header').offsetHeight + 'px');
+  }
+
+  // ---------- 渲染 ----------
+  function renderAll() {
+    computeRange(); renderAxis(); renderRows(); updateHeader(); updateIndicator();
+  }
+
+  // ---------- 启动 ----------
+  setHeaderH(); readVars(); layout(); renderAll();
+  scrollToDate(todayStr, '08:00');
+
+  let lastSegw = SEG_W;
+  window.addEventListener('resize', () => {
+    setHeaderH();
+    readVars(); layout();
+    if (Math.abs(lastSegw - SEG_W) > 0.5) { lastSegw = SEG_W; renderAll(); scrollToDate(selectedDate, '08:00'); }
+    else updateIndicator();
+  });
+})();
+</script>
+</body>
+</html>

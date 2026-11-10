@@ -1,0 +1,9 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">冰精殿下闪耀忙碌的日程</string>
+    <string name="title_activity_main">冰精殿下闪耀忙碌的日程</string>
+    <string name="package_name">com.lazy.schedule</string>
+    <string name="custom_url_scheme">com.lazy.schedule</string>
+    <string name="widget_name">冰精殿下闪耀忙碌的日程</string>
+    <string name="widget_desc">长期任务时间线</string>
+</resources>
